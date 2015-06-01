@@ -1,6 +1,6 @@
 .NET Primer
 ===========
-By `Rich Lander`_; `Zlatko Knezevic`_
+By `Rich Lander`_, `Zlatko Knezevic`_
 
 .NET is a general purpose development platform. It can be used for any
 kind of app type or workload where general purpose solutions are used.
@@ -27,9 +27,9 @@ Key .NET Concepts
 There is a certain number of concepts that are very important to understand if you are new to the .NET Platform. These concepts are the cornerstone of the entire platform, and understanding them at the outset is important for general understanding of how .NET works.
 
 * :doc:`Managed Code <managed-code>`
-* :doc:`Runtime <runtime>`
+* :doc:`Runtime <common-language-runtime>`
 * :doc:`Base Class Library <framework-libraries>`
-* :doc:`Common Type System <cts>`
+* :doc:`Common Type System <common-type-system>`
 
 
 A stroll through .NET
