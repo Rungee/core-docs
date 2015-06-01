@@ -1,5 +1,6 @@
 .NET Primer
 ===========
+By `Rich Lander`_; `Zlatko Knezevic`_
 
 .NET is a general purpose development platform. It can be used for any
 kind of app type or workload where general purpose solutions are used.

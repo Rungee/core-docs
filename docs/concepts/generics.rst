@@ -1,5 +1,6 @@
 Generic Types (Generics) Overview
 =================================
+By `Kasey Uhlenhuth`_
 
 We use generics all the time in C#, whether implicitly of explicitly. When you use LINQ in C#, did you ever notice that you are working with IEnumerable<T>? Or if you every saw an online sample of a "generic repository" for talking to databases using Entity Framework, did you see that most methods return IQueryable<T>? You may have wondered what the **T** is in these examples and why is it in there?
 
