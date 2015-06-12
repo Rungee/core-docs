@@ -37,10 +37,10 @@ A stroll through .NET
 
 As any mature and advanced application development framework, .NET has many powerful features that make the developer's job easier and aim to make writing code more powerful and expressive. This section will outline the basics of the most salient features and provide pointers to more detailed discussions where needed. After finishing this stroll, you should have enough information to be able to read the samples on our GitHub repos as well as other code and understand what is going on.
 
-* Automatic memory management
-* Type safety
+* `Automatic memory management`_
+* `Type safety`_
 * The managed compiler
-* Delegates and lambdas
+* `Delegates and lambdas`_
 * `Generic Types (Generics)`_
 * LINQ
 * Asynchronous support
@@ -52,8 +52,27 @@ As any mature and advanced application development framework, .NET has many powe
 Automatic memory management
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Memory Safety
-~~~~~~~~~~~~~
+Garbage collection is the most well-known of .NET features. Developers do not need to actively manage memory, although there are affordances to provide more information to the garbage collector (GC). C# includes the  ``new``  keyword to allocate memory in terms of a particular type, and the  ``using``  keyword to provide scope for the usage of the object. The GC operates on a lazy approach to memory management, preferring application throughput to the immediate collection of memory.
+
+The following two lines both allocate memory:
+
+.. code-block:: c#
+
+  var title = ".NET Primer";
+  var list = new List<string>;
+
+There is no analogous keyword to de-allocate memory, as de-allocation happens automatically when the garbage collector reclaims the memory through its scheduled running.
+
+Method variables normally go out of scope once a method completes, at which point they can be collected. However, you can indicate to the GC that a particular object is out of scope sooner than method exit using the ``using`` statement.
+
+.. code-block:: c#
+
+  using(FileStream stream = GetFileStream(context))
+  {
+      //operations on the stream
+  }
+
+Once the ``using`` block completes, the GC will know that the ``stream`` object in the example above is free to be collected and its memory reclaimed.
 
 One of the less obvious but quite far-reaching features that a garbage
 collector enables is memory safety. The invariant of memory safety is
@@ -68,7 +87,7 @@ field off the end of an object.
 
 The following example will throw as a result of memory safety.
 
-::
+.. code-block:: c#
 
     int[] numbers = new int[42];
     int number = numbers[42]; // will throw (indexes are 0-based)
@@ -80,15 +99,17 @@ Objects are allocated in terms of types. The only operations allowed for
 a given object, and the memory it consumes, are those of its type. A
 ``Dog`` type may have ``Jump`` and ``WagTail`` methods, but not likely a
 ``SumTotal`` method. A program can only call the declared methods of a
-given type. All other calls will result in an exception.
+given type. All other calls will result either in a compile-time error or a
+run-time exception (in case of using dynamic features or ``object``).
 
-.NET languages can be object*oriented, with hierarchies of base and
+.NET languages can be object-oriented, with hierarchies of base and
 derived classes. The .NET runtime will only allow object casts and calls
-that align with the object hierarchy.
+that align with the object hierarchy. Remember that every type defined in any
+.NET language derives from the core ``object`` type.
 
-::
+.. code-block:: c#
 
-    Dog dog = Dog.AdoptDog();
+    Dog dog = Dog.AdoptDog(); // Returns a Dog type
     Pet pet = (Pet)dog; // Dog derives from Pet
     pet.ActCute();
     Car car = (Car)dog; // will throw - no relationship between Car and Dog
@@ -96,91 +117,44 @@ that align with the object hierarchy.
     car = (Car)temp; // will throw - the runtime isn't fooled
     car.Accelerate() // the dog won't like this, nor will the program get this far
 
-Type safety also guarantees the fidelity of accessor keywords (e.g.
-private, public, internal). This is particularly useful for non*public
-data that an implementation uses to manage its behavior.
+Type safety is also used to help enforce encapsulation by guaranteeing the fidelity
+of the accessor keywords. Accessor keywords are artifacts which control access to
+members of a given type by other code. These are usually used for various kinds
+of data within a type that are used to manage its behavior.
 
-::
+.. code-block:: c#
 
     Dog dog = Dog._nextDogToBeAdopted; // will throw - this is a private field
+
+Some .NET languages support **type inference**. Type inference means that the compiler
+will deduce the type of the expression on the left-hand side from the expression on the
+right-hand side. This doesn't mean that the type safety is broken or avoided. The resulting
+type **has** a strong type with everything that implies. Let's rewrite the first two lines
+of the previous example to introduce type inference. You will note that the rest of
+the example is completely the same.
+
+.. code-block:: c#
+  :linenos:
+
+    var dog = Dog.AdoptDog();
+    var pet = (Pet)dog;
+    pet.ActCute();
+    Car car = (Car)dog; // will throw - no relationship between Car and Dog
+    object temp = (object)dog; // legal - a Dog is an object
+    car = (Car)temp; // will throw - the runtime isn't fooled
+    car.Accelerate() // the dog won't like this, nor will the program get this far
 
 Delegates and Lambdas
 ^^^^^^^^^^^^^^^^^^^^^
 
-Delegates are like C++ function pointers, but are type safe. They are a
+Delegates are like C++ function pointers, with a big difference that they are type safe. They are a
 kind of disconnected method within the CLR type system. Regular methods
 are attached to a class and only directly callable through static or
-instance calling conventions. Alternatively, delegates can be thought of
-as a one method interface, without the interface.
+instance calling conventions.
 
-Delegates define a type, which specify a particular method signature. A
-method (static or instance) that satisfies this signature can be
-assigned to a variable of that type, then called directly (with the
-appropriate arguments) or passed as an argument itself to another method
-and then called. The following example demonstrates delegate use.
+Delegates are used in various APIs and places in the .NET world, especially through lambda expressions, which are a cornerstone of Linq.
 
-::
-
-        public delegate string Reverse(string s);
-
-        static string ReverseString(string s)
-        {
-            return new string(s.Reverse().ToArray());
-        }
-
-        static void Main(string[] args)
-        {
-            Reverse rev = ReverseString;
-
-            Console.WriteLine(rev("a string"));
-        }
-
-.NET includes a set of pre-defined delegate types - ``Func<>`` and ``Action<>`` -
-that be used in many situations, without the requirement to define new
-types. The example above can be re-written to no longer defined the
-reverse delegate and instead define the rev variable as a Func. The
-program will function the same.
-
-::
-
-    Func<string,string> rev = ReverseString;
-
-Lambdas are a more convenient syntax for using delegates. They declare a
-signature and a method body, but don't have an formal identity of their
-own, unless they are assigned to a delegate. Unlike delegates, they can
-be directly assigned as the left-hand side of event registration or as a
-Linq select clause.
-
-You can see the use of lambda as a linq select clause in the Linq
-section above. The following example rewrites the program above using
-the more compact lambda syntax. Note that an explictly defined delegate
-could still be used, instead of Func<>.
-
-::
-
-    static void Main(string[] args)
-    {
-        Func<string,string> rev = (s) => {return new string(s.Reverse().ToArray());};
-
-        Console.WriteLine(rev("a string"));
-    }
-
-The following example demonstrated the use of a lambda as an event
-handler.
-
-::
-
-    public MainWindow()
-    {
-        InitializeComponent();
-
-        Loaded += (o, e) =>
-        {
-            this.Title = "Loaded";
-        };
-    }
-
-
+Read more about it in the :doc:`delegates-lambdas` document.
 
 Generic Types (Generics)
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -191,7 +165,7 @@ Generics were added in order to help programmers implement generic data structur
 
 The below sample shows a basic program running using an instance of `List<T>` types.
 
-::
+.. code-block:: c#
 
   using System;
   using System.Collections.Generic;
